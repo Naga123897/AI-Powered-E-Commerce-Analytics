@@ -1,0 +1,7 @@
+streamlit
+ollama
+sqlalchemy
+pymysql
+python-dotenv
+alembic
+pandas

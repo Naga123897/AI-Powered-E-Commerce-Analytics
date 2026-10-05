@@ -1,0 +1,53 @@
+PROJECT NOTES
+
+Project: AI-Powered E-Commerce Analytics & Customer Insights
+
+ALEMBIC COMMANDS
+
+alembic init migrations
+Meaning: Start Alembic in the project.
+
+alembic current
+Meaning: Check the current migration version.
+
+alembic revision --autogenerate -m "description"
+Meaning: Create a migration for model changes.
+
+alembic upgrade head
+Meaning: Apply the latest migration to MySQL.
+
+alembic downgrade base
+Meaning: Go back to the beginning of migrations.
+
+DATA LOADING
+
+python src/load_data.py
+Meaning: Load cleaned CSV data into MySQL.
+
+IMPORTANT
+
+Alembic = manages database structure.
+load_data.py = loads data.
+MySQL = stores data.
+models.py = defines table structure.
+
+
+SQL ANALYSIS:-
+
+STEP 8 — SQL BUSINESS ANALYSIS
+
+SQL is used to calculate business metrics from the MySQL database.
+
+Sales Analysis:
+- Total Revenue = SUM(order_items.price)
+- Total Orders = COUNT(*) from orders
+- AOV = Total Revenue / Number of Orders
+- Freight Value = SUM(order_items.freight_value)
+- Monthly Revenue = revenue grouped by order purchase month
+- Category Revenue = revenue grouped by product category
+- State Revenue = revenue grouped by customer state
+
+Important:
+Revenue is based on product price.
+Freight value is kept as a separate metric.
+SQL calculates the business facts before Power BI and AI use them.
