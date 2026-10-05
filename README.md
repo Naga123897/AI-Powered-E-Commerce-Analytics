@@ -183,7 +183,7 @@ Key areas:
 * Revenue by Category
 * Revenue by State
 
-![Executive Sales Dashboard](powerbi/screenshots/Executive_Sales.png)
+![Executive Sales Dashboard](powerbi/Screenshots/Executive%20Sales%20Dashboard.png)
 
 ### 2. Customer Analysis
 
@@ -197,7 +197,7 @@ Key areas:
 * Top Customers by Revenue
 * State-level analysis
 
-![Customer Analysis Dashboard](powerbi/screenshots/Customer_Analysis.png)
+![Customer Analysis](powerbi/Screenshots/Customer%20Analysis.png)
 
 ### 3. Product Analysis
 
@@ -212,7 +212,7 @@ Key areas:
 * Items by Category
 * Top Products
 
-![Product Analysis Dashboard](powerbi/screenshots/Product_Analysis.png)
+![Product Analysis](powerbi/Screenshots/Product%20Analysis.png)
 
 ### 4. Delivery & Reviews
 
@@ -225,7 +225,7 @@ Key areas:
 * Review Score Distribution
 * Review Score vs Delivery Time
 
-![Delivery and Reviews Dashboard](powerbi/screenshots/Delivery_Reviews.png)
+![Delivery & Reviews](powerbi/Screenshots/Delivery%20%26%20Reviews.png)
 
 ### 5. Payment Analysis
 
@@ -238,7 +238,7 @@ Key areas:
 * Payment Value by Payment Method
 * Installment Distribution
 
-![Payment Analysis Dashboard](powerbi/screenshots/Payment_Analysis.png)
+![Payment Analysis](powerbi/Screenshots/Payment%20Analysis.png)
 
 ### Power BI File
 
