@@ -1,6 +1,6 @@
 # AI-Powered E-Commerce Analytics & Customer Insights
 
-An end-to-end e-commerce analytics project built using Python, MySQL, SQL, Power BI, and a local Large Language Model (LLM). The project combines traditional business analytics with an AI-powered natural-language question-answering system.
+An end-to-end e-commerce analytics project built using Python, MySQL, SQL, Power BI, and a hosted Large Language Model (LLM) API. The project combines traditional business analytics with an AI-powered natural-language question-answering system.
 
 ## Project Overview
 
@@ -12,7 +12,7 @@ The project includes:
 * Data storage and analysis using MySQL and SQL
 * Database structure management using SQLAlchemy and Alembic
 * Interactive business dashboards using Power BI
-* AI-powered business question answering using Ollama and Qwen3 1.7B
+* AI-powered business question answering using the Groq API
 * Web interface using Streamlit
 * Containerized deployment using Docker
 
@@ -26,7 +26,7 @@ The main objective is to build a complete analytics solution that can:
 4. Present important business insights through Power BI dashboards.
 5. Allow users to ask supported business questions using natural language.
 6. Retrieve verified metrics from MySQL.
-7. Use a local LLM to convert verified results into simple business answers.
+7. Use the Groq API to convert verified database results into simple business answers.
 8. Run the application inside a Docker container.
 
 ## Project Architecture
@@ -44,17 +44,21 @@ SQL Business Analysis
        ↓
 Power BI Dashboards
        
-MySQL
+User Question
    ↓
-SQLAlchemy + Python
+Python Question Identification
    ↓
-Verified Business Metrics
+SQLAlchemy
    ↓
-JSON
+MySQL (verified business metrics)
    ↓
-Ollama
+JSON prompt data
    ↓
-Qwen3 1.7B
+Groq API (GPT-OSS 20B)
+   ↓
+Structured JSON response
+   ↓
+Pydantic validation
    ↓
 Streamlit Web Application
    ↓
@@ -73,8 +77,10 @@ Docker
 | PyMySQL    | MySQL database driver                       |
 | Alembic    | Database migration management               |
 | Power BI   | Interactive business dashboards             |
-| Ollama     | Local LLM runtime                           |
-| Qwen3 1.7B | Local language model                        |
+| Groq API   | Hosted LLM inference API                    |
+| GPT-OSS 20B | Hosted language model used for responses   |
+| OpenAI Python SDK | API client configured for Groq       |
+| Pydantic   | Structured response validation              |
 | Streamlit  | Web application interface                   |
 | Docker     | Application containerization and deployment |
 | WSL 2      | Docker Desktop support on Windows           |
@@ -272,7 +278,11 @@ Verified Result
       ↓
 JSON
       ↓
-Qwen3 1.7B
+Groq API (GPT-OSS 20B)
+      ↓
+Structured JSON response
+      ↓
+Pydantic validation
       ↓
 Simple Business Answer
 ```
@@ -339,21 +349,27 @@ The AI answer is generated from the verified database result rather than allowin
 
 ## AI Technology
 
-### Ollama
+### Groq API
 
-Ollama is used to run the LLM locally.
+The application sends the verified business result to the hosted Groq API using the OpenAI-compatible Python client. The API endpoint is `https://api.groq.com/openai/v1`.
 
-### Qwen3 1.7B
+### GPT-OSS 20B
 
-Qwen3 1.7B is the language model used by the application.
+The configured model is `openai/gpt-oss-20b`. Groq currently lists this model as supporting strict JSON Schema structured outputs.
 
-The model is used for:
+### Structured Output and Pydantic
 
-* Understanding the verified result
-* Generating a natural-language response
-* Presenting the answer in simple English
+The application requests a JSON response with these fields:
 
-The project does not use an external OpenAI API.
+- `summary` — a short business summary.
+- `key_points` — factual points supported by the database result.
+- `recommendation` — one practical recommendation supported by the result.
+
+Pydantic validates the returned data types and required fields. This checks response structure; it does not independently prove that the business statements are factually correct. MySQL remains the source of truth for numerical metrics.
+
+### Token Usage and Estimated Cost
+
+The application reads input, output, and total token counts from the API response. The configured GPT-OSS 20B rates are $0.075 per million uncached input tokens and $0.30 per million output tokens. Groq prompt caching discounts eligible cached input tokens by 50% (currently $0.0375 per million). The displayed request cost is an estimate and can change if Groq updates its pricing or billing rules.
 
 ## Reliability and Validation
 
@@ -365,7 +381,7 @@ The system:
 * Retrieves the corresponding SQL query.
 * Gets the result directly from MySQL.
 * Converts the result into JSON.
-* Sends the verified result to Qwen3.
+* Sends the verified result to Groq GPT-OSS 20B.
 * Instructs the model not to invent or calculate new values.
 * Returns an error message when a question is not supported.
 
@@ -392,7 +408,8 @@ The application allows users to:
 2. Identify the supported question type.
 3. Retrieve verified data from MySQL.
 4. Display the verified result.
-5. Generate a simple AI answer using Qwen3 1.7B.
+5. Request a structured AI answer from Groq and validate it with Pydantic.
+6. Display token usage and estimated API cost when usage data is returned.
 
 The main application file is:
 
@@ -442,12 +459,11 @@ ecommerce-ai-app:latest
 
 The application was tested inside a Docker container with connections to:
 
-* MySQL running on the host machine
-* Ollama running on the host machine
-* Qwen3 1.7B through Ollama
+* MySQL running on the host machine or an accessible database host
+* Groq API over the internet
 * Streamlit inside the Docker container
 
-The container was run with environment variables for the database and Ollama connection.
+The container receives the database settings and `GROQ_API_KEY` through environment variables. Do not copy a real `.env` file into a public repository or Docker image.
 
 The application was successfully accessed through:
 
@@ -467,10 +483,10 @@ Docker Container
         │
         ├──────────────→ MySQL
         │
-        └──────────────→ Ollama
-                              │
-                              ↓
-                         Qwen3 1.7B
+        └──────────────→ Internet / Groq API
+                                      │
+                                      ↓
+                               GPT-OSS 20B
 ```
 
 The Docker container packages the application environment so that the application can be run in a consistent environment.
@@ -484,23 +500,34 @@ Ecommerce_AI_Analytics
 │   ├── raw
 │   └── cleaned
 │
-├── migrations
-│
-├── notebooks
-│
-├── powerbi
+├── migrations/
+├── notebooks/
+├── powerbi/
 │   ├── Ecommerce Dashboard.pbix
-│   └── screenshots
-│
+│   └── Screenshots/
+├── sql/
+├── src/
+│   ├── database.py
+│   └── llm_api.py
+├── app.py
+├── .env.example
+├── .gitignore
+├── requirements.txt
+├── test_groq.py
+├── test_structured_output.py
+├── test_error_handling.py
+└── test_token_cost.py
 ```
+
+Local `.env`, virtual-environment files, Python caches, and dataset folders are excluded from Git according to `.gitignore`. The seven cleaned CSV files are local project data and are not required in the public repository.
 
 ## Installation and Setup
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-github-repository-url>
-cd Ecommerce_AI_Analytics
+git clone https://github.com/Naga123897/AI-Powered-E-Commerce-Analytics.git
+cd AI-Powered-E-Commerce-Analytics
 ```
 
 ### 2. Create a Python Virtual Environment
@@ -521,23 +548,17 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-The project uses:
-
-```text
-streamlit
-ollama
-sqlalchemy
-pymysql
-python-dotenv
-alembic
-pandas
-```
+The dependencies are listed in `requirements.txt`. They include Streamlit, SQLAlchemy, PyMySQL, python-dotenv, Alembic, Pandas, the OpenAI Python SDK (used with Groq's compatible endpoint), and Pydantic.
 
 ### 4. Configure Environment Variables
 
-Create a `.env` file with the required database configuration.
+Copy the example file and edit the local copy:
 
-The `.env` file is intentionally excluded from GitHub because it can contain sensitive database credentials.
+```powershell
+Copy-Item .env.example .env
+```
+
+Set `GROQ_API_KEY`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_HOST`, `MYSQL_PORT`, and `MYSQL_DATABASE` in `.env`. Use your own values. Never commit `.env`; it is excluded by `.gitignore`. The safe template `.env.example` is intended to be committed.
 
 ### 5. Set Up MySQL
 
@@ -561,15 +582,9 @@ alembic upgrade head
 python src/load_data.py
 ```
 
-### 8. Install and Run Ollama
+### 8. Configure Groq
 
-Install Ollama and download the required model:
-
-```powershell
-ollama pull qwen3:1.7b
-```
-
-The application uses Qwen3 1.7B through Ollama.
+Create a Groq API key in your Groq account and place it in the local `.env` file as `GROQ_API_KEY`. The application uses the hosted model configured in `src/llm_api.py`; no local Ollama service or model download is required.
 
 ### 9. Run the Streamlit Application
 
@@ -578,6 +593,19 @@ streamlit run app.py
 ```
 
 The application will be available locally through Streamlit.
+
+## Week 1 LLM Integration Tests
+
+The repository includes standalone test scripts for the Groq connection, structured output, error handling, and token/cost tracking:
+
+```powershell
+python test_groq.py
+python test_structured_output.py
+python test_error_handling.py
+python test_token_cost.py
+```
+
+These scripts make live Groq API requests where indicated and may consume API quota. Run them from the project root with the virtual environment activated and a valid local `.env` file. The error-handling script also performs local invalid-JSON and Pydantic validation checks. A successful test run should be recorded only after it has actually been run in your environment.
 
 ## Key Business Analysis Areas
 
@@ -628,7 +656,9 @@ Verified Business Metrics
         ↓
 JSON
         ↓
-Ollama + Qwen3 1.7B
+Groq API + GPT-OSS 20B
+        ↓
+Pydantic validation
         ↓
 Streamlit
         ↓

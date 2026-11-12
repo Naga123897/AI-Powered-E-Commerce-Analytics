@@ -1,6 +1,33 @@
+# Environment variables
 .env
-venv/
-__pycache__/
+.env.*
 
-data/raw/
-data/cleaned/
+# Allow example environment file
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+.venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# IDE
+.vscode/
+
+# Temporary files
+*.log
+
+# Project datasets
+data/
+
+# Python testing
+.pytest_cache/
+
+# Local backup
+src/llm_api_backup.py

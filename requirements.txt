@@ -1,7 +1,8 @@
 streamlit
-ollama
 sqlalchemy
 pymysql
 python-dotenv
 alembic
 pandas
+openai>=1.42.0
+pydantic>=2.0.0
